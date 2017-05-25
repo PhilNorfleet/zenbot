@@ -21,7 +21,7 @@ module.exports = function container (get, set, clear) {
     },
 
     calculate: function (s) {
-      get('lib.macd')(s, 'trend_ema', s.options.trend_ema)
+      get('lib.ema')(s, 'trend_ema', s.options.trend_ema)
       if (s.options.oversold_rsi || s.options.overbought_rsi) {
         get('lib.rsi')(s, 'rsi', s.options.rsi_periods)
       }
