@@ -29,22 +29,26 @@ c.poloniex.secret = 'YOUR-SECRET'
 // Optional stop-order triggers:
 
 // sell if price drops below this % of bought price (0 to disable)
-c.sell_stop_pct = 0
+c.sell_stop_pct = 8
 // buy if price surges above this % of sold price (0 to disable)
-c.buy_stop_pct = 0
+c.buy_stop_pct = 4
+// sell if price rises this % in a period
+c.sell_pop_pct = 4
+// buy if price drops this % in a period
+c.buy_drop_pct = 4
 // enable trailing sell stop when reaching this % profit (0 to disable)
-c.profit_stop_enable_pct = 0
+c.profit_stop_enable_pct = 8
 // maintain a trailing stop this % below the high-water mark of profit
-c.profit_stop_pct = 1
+c.profit_stop_pct = 2
 
 // Order execution rules:
 
 // avoid trading at a slippage above this pct
 c.max_slippage_pct = 5
 // buy with this % of currency balance
-c.buy_pct = 99
+c.buy_pct = 80
 // sell with this % of asset balance
-c.sell_pct = 99
+c.sell_pct = 80
 // ms to adjust non-filled order after
 c.order_adjust_time = 30000
 // avoid selling at a loss below this pct

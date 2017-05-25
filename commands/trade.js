@@ -24,6 +24,8 @@ module.exports = function container (get, set, clear) {
       .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, c.order_adjust_time)
       .option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, c.sell_stop_pct)
       .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, c.buy_stop_pct)
+      .option('--sell_pop_pct <pct>', 'sell if price rises this % in a period', Number, c.sell_pop_pct)
+      .option('--buy_drop_pct <pct>', 'buy if price drops this % in a period', Number, c.buy_drop_pct)
       .option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, c.profit_stop_enable_pct)
       .option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, c.profit_stop_pct)
       .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float', c.max_sell_loss_pct)
