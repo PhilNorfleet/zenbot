@@ -24,6 +24,8 @@ module.exports = function container (get, set, clear) {
       .option('--order_adjust_time <ms>', 'adjust bid/ask on this interval to keep orders competitive', Number, c.order_adjust_time)
       .option('--sell_stop_pct <pct>', 'sell if price drops below this % of bought price', Number, c.sell_stop_pct)
       .option('--buy_stop_pct <pct>', 'buy if price surges above this % of sold price', Number, c.buy_stop_pct)
+      .option('--sell_pop_pct <pct>', 'sell if price rises this % in a period', Number, c.sell_pop_pct)
+      .option('--buy_drop_pct <pct>', 'buy if price drops this % in a period', Number, c.buy_drop_pct)
       .option('--profit_stop_enable_pct <pct>', 'enable trailing sell stop when reaching this % profit', Number, c.profit_stop_enable_pct)
       .option('--profit_stop_pct <pct>', 'maintain a trailing stop this % below the high-water mark of profit', Number, c.profit_stop_pct)
       .option('--max_sell_loss_pct <pct>', 'avoid selling at a loss pct under this float', c.max_sell_loss_pct)
@@ -84,6 +86,26 @@ module.exports = function container (get, set, clear) {
           console.log('buy hold', buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
           console.log('vs. buy hold', n(s.balance.currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
           console.log(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
+          var last_buy, last_sell
+          var losses = 0
+          s.my_trades.forEach(function (trade) {
+            if (trade.type === 'buy') {
+              if (last_sell && trade.price > last_sell) {
+                losses++
+              }
+              last_buy = trade.price
+            }
+            else {
+              if (last_buy && trade.price < last_buy) {
+                losses++
+              }
+              last_sell = trade.price
+            }
+          })
+          if (s.my_trades.length) {
+            console.log('win/loss: ' + (s.my_trades.length - losses) + '/' + losses)
+            console.log('error rate: ' + n(losses).divide(s.my_trades.length).format('0.00%').yellow)
+          }
           var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
             return {
               time: period.time,
