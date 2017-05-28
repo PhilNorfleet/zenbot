@@ -15,15 +15,14 @@ module.exports = function container (get, set, clear) {
       this.option('neutral_rate', 'avoid signals when trend EMA rate is under this absolute value', Number, 'auto')
       this.option('max_buy_duration', 'avoid buy if trend duration over this number', Number, 0)
       this.option('max_sell_duration', 'avoid sell if trend duration over this number', Number, 0)
-      this.option('rsi_periods', 'number of periods for oversold RSI', Number, 14)
+      this.option('oversold_rsi_periods', 'number of periods for oversold RSI', Number, 14)
       this.option('oversold_rsi', 'buy when RSI reaches this value', Number, 0)
-      this.option('overbought_rsi', 'sell when RSI reaches this value', Number, 100)
     },
 
     calculate: function (s) {
       get('lib.ema')(s, 'trend_ema', s.options.trend_ema)
-      if (s.options.oversold_rsi || s.options.overbought_rsi) {
-        get('lib.rsi')(s, 'rsi', s.options.rsi_periods)
+      if (s.options.oversold_rsi) {
+        get('lib.rsi')(s, 'oversold_rsi', s.options.oversold_rsi_periods)
       }
       if (s.period.trend_ema && s.lookback[0] && s.lookback[0].trend_ema) {
         s.period.trend_ema_rate = (s.period.trend_ema - s.lookback[0].trend_ema) / s.lookback[0].trend_ema * 100
@@ -38,28 +37,15 @@ module.exports = function container (get, set, clear) {
           s.options.neutral_rate = s.period.trend_ema_stddev
         }
       }
-      if (!s.in_preroll && typeof s.period.rsi === 'number') {
-        if (s.period.rsi <= s.options.oversold_rsi && !s.oversold) {
+      if (!s.in_preroll && typeof s.period.oversold_rsi === 'number') {
+        if (s.period.oversold_rsi <= s.options.oversold_rsi && !s.oversold) {
           s.oversold = true
-          console.log(('\noversold at ' + s.period.rsi + ' RSI, preparing to buy\n').cyan)
+          console.log(('\noversold at ' + s.period.oversold_rsi + ' RSI, preparing to buy\n').cyan)
         }
         else if (s.oversold) {
           s.oversold = false
           s.trend = 'oversold'
           s.signal = 'buy'
-          s.cancel_down = true
-          return cb()
-        }
-      }
-      if (!s.in_preroll && typeof s.period.rsi === 'number') {
-        if (s.period.rsi >= s.options.overbought_rsi && !s.overbought) {
-          s.overbought = true
-          console.log(('\noverbought at ' + s.period.rsi + ' RSI, preparing to sell\n').cyan)
-        }
-        else if (s.overbought) {
-          s.overbought = false
-          s.trend = 'overbought'
-          s.signal = 'sell'
           s.cancel_down = true
           return cb()
         }
@@ -72,9 +58,7 @@ module.exports = function container (get, set, clear) {
           }
           s.trend_duration++
           s.trend = 'up'
-          s.signal = (!s.options.buy_rate || s.period.trend_ema_rate <= s.options.buy_rate) &&
-            (!s.options.max_buy_duration || !s.trend || s.trend_duration <= s.options.max_buy_duration) &&
-            !s.acted_on_trend && !(s.period.rsi >= s.options.overbought_rsi) ? 'buy' : null
+          s.signal = (!s.options.buy_rate || s.period.trend_ema_rate <= s.options.buy_rate) && (!s.options.max_buy_duration || !s.trend || s.trend_duration <= s.options.max_buy_duration) && !s.acted_on_trend ? 'buy' : null
           s.cancel_down = false
         }
         else if (!s.cancel_down && s.period.trend_ema_rate < (s.options.neutral_rate * -1)) {
@@ -84,9 +68,7 @@ module.exports = function container (get, set, clear) {
           }
           s.trend_duration++
           s.trend = 'down'
-          s.signal = (!s.options.sell_rate || s.period.trend_ema_rate >= s.options.sell_rate) &&
-            (!s.options.max_sell_duration || !s.trend || s.trend_duration <= s.options.max_sell_duration) &&
-            !s.acted_on_trend && !(s.period.rsi <= s.options.oversold_rsi) ? 'sell' : null
+          s.signal = (!s.options.sell_rate || s.period.trend_ema_rate >= s.options.sell_rate) && (!s.options.max_sell_duration || !s.trend || s.trend_duration <= s.options.max_sell_duration) && !s.acted_on_trend ? 'sell' : null
         }
       }
       cb()

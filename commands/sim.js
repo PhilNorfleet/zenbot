@@ -86,6 +86,26 @@ module.exports = function container (get, set, clear) {
           console.log('buy hold', buy_hold.format('0.00000000').yellow + ' (' + n(buy_hold_profit).format('0.00%') + ')')
           console.log('vs. buy hold', n(s.balance.currency).subtract(buy_hold).divide(buy_hold).format('0.00%').yellow)
           console.log(s.my_trades.length + ' trades over ' + s.day_count + ' days (avg ' + n(s.my_trades.length / s.day_count).format('0.00') + ' trades/day)')
+          var last_buy, last_sell
+          var losses = 0
+          s.my_trades.forEach(function (trade) {
+            if (trade.type === 'buy') {
+              if (last_sell && trade.price > last_sell) {
+                losses++
+              }
+              last_buy = trade.price
+            }
+            else {
+              if (last_buy && trade.price < last_buy) {
+                losses++
+              }
+              last_sell = trade.price
+            }
+          })
+          if (s.my_trades.length) {
+            console.log('win/loss: ' + (s.my_trades.length - losses) + '/' + losses)
+            console.log('error rate: ' + n(losses).divide(s.my_trades.length).format('0.00%').yellow)
+          }
           var data = s.lookback.slice(0, s.lookback.length - so.min_periods).map(function (period) {
             return {
               time: period.time,
